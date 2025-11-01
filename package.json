@@ -8,9 +8,21 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "elevenlabs",
+    "nextjs",
+    "typescript",
+    "tailwindcss",
+    "ui-components",
+    "voice-ai",
+    "audio"
+  ],
+  "author": "Steven Sierra Alcabes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CivAIgentics/Custom_UI_EL"
+  },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
