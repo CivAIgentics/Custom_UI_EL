@@ -322,25 +322,28 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
       // Mark agent as responding - this will hide the user transcript bubble immediately
       setIsAgentResponding(true)
       
-      // IMPORTANT: When agent starts responding, ALWAYS clear any pending user transcript
-      const pendingTranscript = currentTranscriptRef.current.trim()
-      
-      // Clear the transcript state immediately regardless
-      currentTranscriptRef.current = ''
-      setCurrentTranscript('')
-      
-      if (pendingTranscript) {
-        console.log('🎤 Agent responding - finalizing pending user transcript:', pendingTranscript)
-        addMessage('user', pendingTranscript)
-      } else {
-        console.log('✓ No pending transcript to finalize')
-      }
-      
-      // Clear the timeout since we're finalizing now
-      if (transcriptTimeoutRef.current) {
-        clearTimeout(transcriptTimeoutRef.current)
-        transcriptTimeoutRef.current = undefined
-      }
+      // IMPORTANT: Delay finalization slightly to ensure we capture the FULL user transcript
+      // The transcript might still be streaming in when agent starts responding
+      setTimeout(() => {
+        const pendingTranscript = currentTranscriptRef.current.trim()
+        
+        // Clear the transcript state
+        currentTranscriptRef.current = ''
+        setCurrentTranscript('')
+        
+        if (pendingTranscript) {
+          console.log('🎤 Agent responding - finalizing pending user transcript:', pendingTranscript)
+          addMessage('user', pendingTranscript)
+        } else {
+          console.log('✓ No pending transcript to finalize')
+        }
+        
+        // Clear the timeout since we're finalizing now
+        if (transcriptTimeoutRef.current) {
+          clearTimeout(transcriptTimeoutRef.current)
+          transcriptTimeoutRef.current = undefined
+        }
+      }, 200) // 200ms delay to capture the full transcript
       
       try {
         const text = (part as any).text ?? (part as any).content ?? (part as any).message ?? String(part)
