@@ -316,20 +316,26 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     // Agent chat response parts (streaming text parts) - THIS IS THE KEY ONE
     onAgentChatResponsePart: (part) => {
       console.log('🤖 onAgentChatResponsePart called with:', part)
+      console.log('🔍 Current transcript ref value:', currentTranscriptRef.current)
       
-      // IMPORTANT: When agent starts responding, finalize any pending user transcript
+      // IMPORTANT: When agent starts responding, ALWAYS clear any pending user transcript
       const pendingTranscript = currentTranscriptRef.current.trim()
+      
+      // Clear the transcript state immediately regardless
+      currentTranscriptRef.current = ''
+      setCurrentTranscript('')
+      
       if (pendingTranscript) {
         console.log('🎤 Agent responding - finalizing pending user transcript:', pendingTranscript)
-        currentTranscriptRef.current = ''
-        setCurrentTranscript('')
         addMessage('user', pendingTranscript)
-        
-        // Clear the timeout since we're finalizing now
-        if (transcriptTimeoutRef.current) {
-          clearTimeout(transcriptTimeoutRef.current)
-          transcriptTimeoutRef.current = undefined
-        }
+      } else {
+        console.log('✓ No pending transcript to finalize')
+      }
+      
+      // Clear the timeout since we're finalizing now
+      if (transcriptTimeoutRef.current) {
+        clearTimeout(transcriptTimeoutRef.current)
+        transcriptTimeoutRef.current = undefined
       }
       
       try {
@@ -555,7 +561,21 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
       }, 1000)
       
     } else if (msgType === 'agent_response' || (msgType === 'text' && msgRole === 'agent')) {
-      // Agent is responding (streaming) - just accumulate, let isSpeaking state handle finalization
+      // Agent is responding (streaming) - finalize any pending user transcript first
+      const pendingTranscript = currentTranscriptRef.current.trim()
+      if (pendingTranscript) {
+        console.log('🎤 Agent response detected - finalizing pending user transcript:', pendingTranscript)
+        currentTranscriptRef.current = ''
+        setCurrentTranscript('')
+        addMessage('user', pendingTranscript)
+        
+        if (transcriptTimeoutRef.current) {
+          clearTimeout(transcriptTimeoutRef.current)
+          transcriptTimeoutRef.current = undefined
+        }
+      }
+      
+      // Now accumulate agent response
       const text = message.text || message.content || ''
       const convertedText = convertSpelledNumbersToDigits(text)
       console.log('🤖 Agent response chunk:', convertedText)
