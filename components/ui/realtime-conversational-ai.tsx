@@ -231,6 +231,7 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
   const inputVolumeRef = useRef<number>(0)
   const outputVolumeRef = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const currentTranscriptRef = useRef<string>('')
   
   // Use ElevenLabs Conversation hook with controlled micMuted state
   // This tells the SDK to respect our mute state
@@ -317,11 +318,12 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
       console.log('🤖 onAgentChatResponsePart called with:', part)
       
       // IMPORTANT: When agent starts responding, finalize any pending user transcript
-      if (currentTranscript.trim()) {
-        console.log('🎤 Agent responding - finalizing pending user transcript:', currentTranscript)
-        const userText = currentTranscript.trim()
+      const pendingTranscript = currentTranscriptRef.current.trim()
+      if (pendingTranscript) {
+        console.log('🎤 Agent responding - finalizing pending user transcript:', pendingTranscript)
+        currentTranscriptRef.current = ''
         setCurrentTranscript('')
-        addMessage('user', userText)
+        addMessage('user', pendingTranscript)
         
         // Clear the timeout since we're finalizing now
         if (transcriptTimeoutRef.current) {
@@ -474,16 +476,19 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     const isSpeakingNow = conversation.isSpeaking
     
     // Agent just STARTED speaking - finalize any pending user transcript immediately
-    if (!wasSpeaking && isSpeakingNow && currentTranscript.trim()) {
-      console.log('🎤 Agent started speaking - finalizing pending user transcript:', currentTranscript)
-      const userText = currentTranscript.trim()
-      setCurrentTranscript('')
-      addMessage('user', userText)
-      
-      // Clear the timeout
-      if (transcriptTimeoutRef.current) {
-        clearTimeout(transcriptTimeoutRef.current)
-        transcriptTimeoutRef.current = undefined
+    if (!wasSpeaking && isSpeakingNow) {
+      const pendingTranscript = currentTranscriptRef.current.trim()
+      if (pendingTranscript) {
+        console.log('🎤 Agent started speaking - finalizing pending user transcript:', pendingTranscript)
+        currentTranscriptRef.current = ''
+        setCurrentTranscript('')
+        addMessage('user', pendingTranscript)
+        
+        // Clear the timeout
+        if (transcriptTimeoutRef.current) {
+          clearTimeout(transcriptTimeoutRef.current)
+          transcriptTimeoutRef.current = undefined
+        }
       }
     }
     
@@ -529,6 +534,7 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
       const text = message.text || message.transcript || ''
       const convertedText = convertSpelledNumbersToDigits(text)
       console.log('👤 User interim transcript:', convertedText)
+      currentTranscriptRef.current = convertedText
       setCurrentTranscript(convertedText)
       
       // Clear any existing timeout
@@ -542,6 +548,7 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
         if (currentText && currentText === convertedText.trim()) {
           console.log('⏱️ Finalizing complete user transcript:', currentText)
           // Immediately clear the interim state BEFORE adding message to avoid duplication
+          currentTranscriptRef.current = ''
           setCurrentTranscript('')
           addMessage('user', currentText)
         }
