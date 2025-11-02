@@ -315,6 +315,21 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     // Agent chat response parts (streaming text parts) - THIS IS THE KEY ONE
     onAgentChatResponsePart: (part) => {
       console.log('🤖 onAgentChatResponsePart called with:', part)
+      
+      // IMPORTANT: When agent starts responding, finalize any pending user transcript
+      if (currentTranscript.trim()) {
+        console.log('🎤 Agent responding - finalizing pending user transcript:', currentTranscript)
+        const userText = currentTranscript.trim()
+        setCurrentTranscript('')
+        addMessage('user', userText)
+        
+        // Clear the timeout since we're finalizing now
+        if (transcriptTimeoutRef.current) {
+          clearTimeout(transcriptTimeoutRef.current)
+          transcriptTimeoutRef.current = undefined
+        }
+      }
+      
       try {
         const text = (part as any).text ?? (part as any).content ?? (part as any).message ?? String(part)
         if (text && text.length > 0 && text !== '[object Object]') {
@@ -458,6 +473,20 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     const wasSpeaking = prevIsSpeakingRef.current
     const isSpeakingNow = conversation.isSpeaking
     
+    // Agent just STARTED speaking - finalize any pending user transcript immediately
+    if (!wasSpeaking && isSpeakingNow && currentTranscript.trim()) {
+      console.log('🎤 Agent started speaking - finalizing pending user transcript:', currentTranscript)
+      const userText = currentTranscript.trim()
+      setCurrentTranscript('')
+      addMessage('user', userText)
+      
+      // Clear the timeout
+      if (transcriptTimeoutRef.current) {
+        clearTimeout(transcriptTimeoutRef.current)
+        transcriptTimeoutRef.current = undefined
+      }
+    }
+    
     // Agent just stopped speaking - finalize the current streaming response immediately
     if (wasSpeaking && !isSpeakingNow && streamingResponse.trim()) {
       console.log('🛑 Agent stopped speaking - finalizing complete message:', streamingResponse)
@@ -477,7 +506,7 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     }
     
     prevIsSpeakingRef.current = isSpeakingNow
-  }, [conversation.isSpeaking, streamingResponse, addMessage])
+  }, [conversation.isSpeaking, streamingResponse, currentTranscript, addMessage])
 
   // Track previous transcript and response to detect changes
   const prevTranscriptRef = useRef<string>('')
