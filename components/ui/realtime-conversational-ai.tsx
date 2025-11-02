@@ -226,6 +226,7 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
   const [canSendFeedback, setCanSendFeedback] = useState(false)
   const [connectionType, setConnectionType] = useState<'websocket' | 'webrtc'>('websocket')
   const [agentId, setAgentId] = useState(initialAgentId || '')
+  const [isAgentResponding, setIsAgentResponding] = useState(false)
   
   // Refs for volume levels
   const inputVolumeRef = useRef<number>(0)
@@ -317,6 +318,9 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
     onAgentChatResponsePart: (part) => {
       console.log('🤖 onAgentChatResponsePart called with:', part)
       console.log('🔍 Current transcript ref value:', currentTranscriptRef.current)
+      
+      // Mark agent as responding - this will hide the user transcript bubble immediately
+      setIsAgentResponding(true)
       
       // IMPORTANT: When agent starts responding, ALWAYS clear any pending user transcript
       const pendingTranscript = currentTranscriptRef.current.trim()
@@ -505,6 +509,9 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
       
       // Clear streaming state FIRST to prevent duplicate
       setStreamingResponse('')
+      
+      // Agent finished responding - allow user transcript to show again
+      setIsAgentResponding(false)
       
       // Add the complete message as one bubble
       addMessage('assistant', finalText)
@@ -925,8 +932,8 @@ export const RealtimeConversationalAI: React.FC<RealtimeConversationalAIProps> =
               )
             })}
             
-            {/* Show live user transcript ONLY if it's not empty and we're actively getting new transcripts */}
-            {currentTranscript && currentTranscript.trim() && (
+            {/* Show live user transcript ONLY if it's not empty, we're getting transcripts, AND agent is NOT responding */}
+            {currentTranscript && currentTranscript.trim() && !isAgentResponding && (
               <div className="flex gap-3 items-start flex-row-reverse animate-in fade-in">
                 <div className="w-10 h-10 shrink-0">
                   <Orb
