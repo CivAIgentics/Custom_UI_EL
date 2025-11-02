@@ -2,14 +2,29 @@
 
 A Next.js project configured to build custom UIs with [ElevenLabs UI components](https://github.com/elevenlabs/ui). This project is set up with TypeScript, Tailwind CSS, and shadcn/ui, ready to integrate ElevenLabs UI components for building multimodal agents and audio-centric applications.
 
+## 🎯 Highlights
+
+### 🤖 **Conversational AI Agent** (NEW!)
+A fully-featured multimodal conversational AI agent with:
+- 🎤 **Voice Input** - Record audio with real-time transcription
+- ⌨️ **Text Input** - Traditional text-based chat
+- 🔊 **Voice Output** - AI responses synthesized using ElevenLabs TTS
+- 📝 **Real-time Transcription** - Live speech-to-text during recording
+- 💬 **Conversation History** - Full chat history with audio playback
+- 🎨 **Beautiful UI** - Modern, responsive interface
+
+👉 **[View Conversational AI Documentation](./CONVERSATIONAL_AI.md)**
+
 ## Features
 
 - ⚡ **Next.js 16** - Latest version with Turbopack
 - 🎨 **Tailwind CSS** - Utility-first CSS framework
 - 📦 **shadcn/ui** - High-quality component library
-- 🎙️ **ElevenLabs UI Ready** - Configured to work with ElevenLabs UI components
+- 🎙️ **ElevenLabs Integration** - Full SDK integration for voice AI
 - 🔧 **TypeScript** - Full type safety
 - 🎯 **ESLint** - Code linting and formatting
+- 🎵 **Audio Components** - Pre-built audio player, waveforms, and visualizers
+- 🗣️ **Voice Components** - Voice buttons, selectors, and input handlers
 
 ## Getting Started
 
@@ -31,12 +46,45 @@ cd Custom_UI_EL
 npm install
 ```
 
-3. Run the development server:
+3. Configure your ElevenLabs API key:
+
+Create a `.env.local` file:
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` and add your API key:
+```
+NEXT_PUBLIC_ELEVENLABS_API_KEY=your_api_key_here
+```
+
+Get your API key from the [ElevenLabs Dashboard](https://elevenlabs.io/app/settings/api-keys).
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Quick Start Examples
+
+### Conversational AI Agent
+
+Visit `/conversational-ai` to try the multimodal conversational AI:
+
+```bash
+npm run dev
+# Then open http://localhost:3000/conversational-ai
+```
+
+Features:
+- Voice and text input
+- Real-time speech transcription
+- AI-generated voice responses
+- Conversation history
+
+See the [full documentation](./CONVERSATIONAL_AI.md) for integration details.
 
 ## Adding ElevenLabs UI Components
 
